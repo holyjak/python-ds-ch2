@@ -167,12 +167,55 @@ np.multiply.outer(x, x)
 More information on universal functions (including the full list of available functions) can be found on the NumPy and SciPy documentation websites."]
 
 ["Aggregations: Min, Max, and Everything In Between
- ------------------------------------------------"]
+ ------------------------------------------------
 
-["### NumPy Standard Data Types"]
-["### NumPy Standard Data Types"]
+ Often when faced with a large amount of data, a first step is to compute summary statistics for the data in question. Perhaps the most common summary statistics are the mean and standard deviation, which allow you to summarize the \"typical\" values in a dataset, but other aggregates are useful as well (the sum, product, median, minimum and maximum, quantiles, etc.).
 
+ NumPy has fast built-in aggregation functions for working on arrays; we'll discuss and demonstrate some of them here."]
 
+["### Summing the Values in an Array
+
+`np.sum(L)`"]
+
+["### Minimum and Maximum
+
+`np.min(big_array), np.max(big_array)`"]
+
+["#### Multi dimensional aggregates
+
+One common type of aggregation operation is an aggregate along a row or column. Say you have some data stored in a two-dimensional array.
+
+Aggregation functions take an additional argument specifying the axis along which the aggregate is computed. For example, we can find the minimum value within each column by specifying `axis=0`:
+
+```
+M.min(axis=0)
+=> array([ 0.66859307,  0.03783739,  0.19544769,  0.06682827])
+```"]
+
+["#### Other aggregation functions
+
+NumPy provides many other aggregation functions, but we won't discuss them in detail here. Additionally, most aggregates have a NaN-safe counterpart that computes the result while ignoring missing values, which are marked by the special IEEE floating-point NaN value (for a fuller discussion of missing data, see Handling Missing Data).
+
+The following table provides a list of useful aggregation functions available in NumPy:
+Function Name 	NaN-safe Version 	Description
+np.sum 	np.nansum 	Compute sum of elements
+np.prod 	np.nanprod 	Compute product of elements
+np.mean 	np.nanmean 	Compute mean of elements
+np.std 	np.nanstd 	Compute standard deviation
+np.var 	np.nanvar 	Compute variance
+np.min 	np.nanmin 	Find minimum value
+np.max 	np.nanmax 	Find maximum value
+np.argmin 	np.nanargmin 	Find index of minimum value
+np.argmax 	np.nanargmax 	Find index of maximum value
+np.median 	np.nanmedian 	Compute median of elements
+np.percentile 	np.nanpercentile 	Compute rank-based statistics of elements
+np.any 	N/A 	Evaluate whether any elements are true
+np.all 	N/A 	Evaluate whether all elements are true
+"]
+
+["### Example: What is the Average Height of US Presidents?"]
+
+["### WIP"]
 ["Computation on Arrays: Broadcasting
  ------------------------------------------------"]
 
