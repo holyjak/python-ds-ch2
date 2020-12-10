@@ -3,7 +3,6 @@
 
  :deps
  {scicloj/tablecloth {:mvn/version "5.00-beta-5a"}
-  techascent/tech.viz {:mvn/version "0.4.3"}
-  metasoarous/oz {:mvn/version "1.6.0-alpha34"}
-  nrepl/nrepl    {:mvn/version "0.8.3"}
-  aerial.hanami {:mvn/version "0.12.1"}}}
+  scicloj/notespace {:mvn/version "3-alpha2"}
+  #_#_nrepl/nrepl    {:mvn/version "0.8.3"}}}
+
