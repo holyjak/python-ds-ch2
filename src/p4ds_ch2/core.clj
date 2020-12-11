@@ -197,6 +197,8 @@ M.min(axis=0)
 NumPy provides many other aggregation functions, but we won't discuss them in detail here. Additionally, most aggregates have a NaN-safe counterpart that computes the result while ignoring missing values, which are marked by the special IEEE floating-point NaN value (for a fuller discussion of missing data, see Handling Missing Data).
 
 The following table provides a list of useful aggregation functions available in NumPy:
+
+```
 Function Name 	NaN-safe Version 	Description
 np.sum 	np.nansum 	Compute sum of elements
 np.prod 	np.nanprod 	Compute product of elements
@@ -211,13 +213,38 @@ np.median 	np.nanmedian 	Compute median of elements
 np.percentile 	np.nanpercentile 	Compute rank-based statistics of elements
 np.any 	N/A 	Evaluate whether any elements are true
 np.all 	N/A 	Evaluate whether all elements are true
+```
 "]
 
-["### Example: What is the Average Height of US Presidents?"]
+["### Example: What is the Average Height of US Presidents?
 
-["### WIP"]
+```
+import pandas as pd
+data = pd.read_csv('data/president_heights.csv')
+heights = np.array(data['height(cm)'])
+print(\"Mean height:       \", heights.mean())
+print(\"Standard deviation\", heights.std())
+print(\"Minimum height:    \", heights.min())
+print(\"Maximum height:    \", heights.max())
+
+print(\"25th percentile:   \", np.percentile(heights, 25))
+print(\"Median:            \", np.median(heights))
+print(\"75th percentile:   \", np.percentile(heights, 75))
+
+%matplotlib inline
+import matplotlib.pyplot as plt
+import seaborn; seaborn.set()  # set plot style
+plt.hist(heights)
+plt.title('Height Distribution of US Presidents')
+plt.xlabel('height (cm)')
+plt.ylabel('number'));
+
+```"]
+
 ["Computation on Arrays: Broadcasting
  ------------------------------------------------"]
+
+["### WIP"]
 
 ["Comparisons, Masks, and Boolean Logic
  ------------------------------------------------"]
