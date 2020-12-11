@@ -2,11 +2,7 @@
   (:require
     [notespace.api]
     [notespace.kinds :as k :reload true]
-    [notespace.state :as state]
-
-    [tablecloth.api :as api]
-
-    [tech.v3.datatype.statistics :as t.stat]))
+    [notespace.state :as state]))
 
 ^k/hidden
 (comment
@@ -14,6 +10,9 @@
   (notespace.api/init-with-browser)
   (notespace.api/eval-this-notespace)
   (notespace.api/eval-note-at-line 14)
+
+  (notespace.api/listen)
+  (notespace.api/unlisten)
   nil)
 
 ["
@@ -24,10 +23,173 @@ Python Data Science - ch.2. NumPy translated to Clojure
 ["Understanding Data Types in Python
  ------------------------------------------------"]
 
-["### Fixed-Type Arrays in Python"]
-["### Creating Arrays from Python Lists"]
-["### Creating Arrays from Scratch"]
-["### NumPy Standard Data Types"]
+["### Fixed-Type Arrays in Python
+
+In Clojure we use [dtype-next](https://github.com/cnuernber/dtype-next) (also known as
+`tech.v3.datatype`) and the convenient wrapper with a consistent API, [tablecloth](https://scicloj.github.io/tablecloth/),
+for working efficiently with dataset data."]
+
+(require
+  '[tech.v3.dataset :as ds]
+  '[tech.v3.datatype :as dtype]
+  '[tech.v3.tensor :as dtt]
+  '[tablecloth.api :as api])
+
+["### Creating Arrays from ~Python~ Lists
+
+In Python:
+
+```python
+# integer array:
+np.array([1, 4, 2, 5, 3])
+```
+
+In Clojure we mostly don't work with low-level \"arrays\" but with \"datasets\".
+In 2D those consist of rows and (named) columns:
+"]
+
+(api/dataset {:column1 [1 4 2 5 3]})
+
+["Datasets are provided by `tech.v3.dataset` and made convenient via Tablecloth.
+
+The underlying data structure - from `tech.v3.datatype` - is a \"container\", very similar to numpy arrays. From the [dtype Cheatshet](https://cnuernber.github.io/dtype-next/cheatsheet.html):
+
+> There are two different types of containers in tech.v3.datatype; jvm-heap containers and native-heap containers. Object datatypes are only supported in jvm-heap containers and native-heap containers have mmap support and offer zero-copy pathways to toolkits like Python’s numpy and Clojure’s neanderthal."]
+
+@(def f32 (dtype/make-container :jvm-heap :float32 [1 4 2 5 3]))
+
+["Containers are space- and time-efficient data structures with fast copy, including from/to native memory (for sharing with external processes).
+
+A container is backed by a raw, typed _buffer_. A read-only view of a buffer is called _reader_.
+
+For multi-dimensional data, dtype-next offers *tensors*:
+
+> Generic N-dimensional support built on top of buffers and dimension objects. Conceptually you combine a raw data buffer with an indexing mechanism capable if transforming multiple dimension address into a linear address into the raw data buffer.
+
+(We will see more of tensors later.)"]
+
+["A dataset column is constrained to a single value type. If types do not match, they will be upcasted if possible (here, integers are up-cast to floating point):"]
+(api/dataset {:v [3.14, 4, 2, 3]} {:dataset-name "Mixed int and float"})
+
+["### Creating Arrays from Scratch
+
+Create an empty array of length 5:"]
+(dtype/make-container :jvm-heap :float16 5)
+
+["Numpy has a number of ways of initializing new arrays with values:"]
+
+["Create a length-10 integer array filled with zeros
+```python
+np.zeros(10, dtype=int)
+```"]
+(dtype/emap (constantly 0) nil
+            (dtype/make-container :jvm-heap :int8 10))
+
+["Create a 3x5 floating-point array filled with ones
+```python
+np.ones((3, 5), dtype=float)
+```"]
+(dtype/emap (constantly 1) nil
+            (dtt/new-tensor [3 5]))
+
+["Create a 3x5 floating-point array filled with 3.14
+```python
+np.full((3, 5), 3.14)
+```"]
+(dtype/emap (constantly 3.14) nil
+            (dtt/new-tensor [3 5]))
+
+["Create an array filled with a linear sequence
+Starting at 0, ending at 20, stepping by 2
+```python
+np.arange(0, 20, 2)
+```"]
+(dtype/make-container :jvm-heap :int8 (range 0 20 2))
+
+["Create an array of five values evenly spaced between 0 and 1 ❓
+```python
+np.linspace(0, 1, 5)
+"]
+
+(println "???")
+
+["Create a 3x3 array of uniformly distributed random values between 0 and 1
+```python
+np.random.random((3, 3))
+```"]
+(require '[fastmath.random :as fm.rand])
+;; FIXME: Fails with ArityException - see  https://github.com/generateme/fastmath/issues/5
+;(dtype/emap (fn [_] (fm.rand/frandom fm.rand/default-normal 1)) nil
+;            (dtt/new-tensor [3 3]))
+
+["Create a 3x3 array of normally distributed random values with mean 0 and standard deviation 1
+```python
+np.random.normal(0, 1, (3, 3))
+```"]
+;(dtype/emap (fn [_] (fm.rand/frandom (fm.rand/normal :normal {:mu 0 :sd 1}) 1)) nil
+;            (dtt/new-tensor [3 3]))
+
+["Create a 3x3 array of random integers in the interval [0, 10]
+```python
+np.random.randint(0, 10, (3, 3))
+```"]
+;(dtype/emap (fn [_] (fm.rand/irand fm.rand/default-normal 0 11)) nil
+;            (dtt/new-tensor [3 3]))
+
+["Create a 3x3 identity matrix
+```python
+np.eye(3)
+```"]
+
+;; N/A
+
+["Create an uninitialized array of three integers. The values will be whatever happens to already exist at that memory location
+```python
+np.empty(3)
+```"]
+(dtype/make-container :jvm-heap :float32 3)
+
+["### NumPy Standard Data Types
+
+```
+Data type 	Description
+bool_ 	Boolean (True or False) stored as a byte
+int_ 	Default integer type (same as C long; normally either int64 or int32)
+intc 	Identical to C int (normally int32 or int64)
+intp 	Integer used for indexing (same as C ssize_t; normally either int32 or int64)
+int8 	Byte (-128 to 127)
+int16 	Integer (-32768 to 32767)
+int32 	Integer (-2147483648 to 2147483647)
+int64 	Integer (-9223372036854775808 to 9223372036854775807)
+uint8 	Unsigned integer (0 to 255)
+uint16 	Unsigned integer (0 to 65535)
+uint32 	Unsigned integer (0 to 4294967295)
+uint64 	Unsigned integer (0 to 18446744073709551615)
+float_ 	Shorthand for float64.
+float16 	Half precision float: sign bit, 5 bits exponent, 10 bits mantissa
+float32 	Single precision float: sign bit, 8 bits exponent, 23 bits mantissa
+float64 	Double precision float: sign bit, 11 bits exponent, 52 bits mantissa
+complex_ 	Shorthand for complex128.
+complex64 	Complex number, represented by two 32-bit floats
+complex128 	Complex number, represented by two 64-bit floats
+```
+
+dtype-next data types:
+
+```
+:boolean
+:char
+:int8
+:int16
+:int32
+:int64
+:uint8
+:uint16
+:uint32
+:uint64
+:float32
+:float64
+```"]
 
 ["The Basics of NumPy Arrays
  ------------------------------------------------"]
@@ -36,19 +198,32 @@ Python Data Science - ch.2. NumPy translated to Clojure
 `ndim, size, shape` (list of dimension lengths), `dtype` e.g. int64,
 `itemsize` in bytes and the total `nbytes` count."]
 
+(count f32)
+(dtype/get-datatype f32)
+;; nothing for itemsize, nbytes? => need to check java docs and count oneself
+
 ["### Array Indexing: Accessing Single Elements
 
 Ex.: `x[4]`, `x[-1]`, `x[1,2]`"]
+
+["Accessing nth element of a container, e.g. for n=2:"]
+
+(f32 1)
+(nth f32 1)
 
 ["### Array Slicing: Accessing Subarrays
 
 `x[start:stop:step]`, e.g. `x[::2]  # every other element`, `x[5::-2]  # reversed every other from index 5`"]
 
+;; see https://cnuernber.github.io/dtype-next/tech.v3.datatype.html#var-sub-buffer - not sure if possible to somehow define the "step" - perhaps using argops and indexed-buffer
+
 ["### Multi-dimensional subarrays
 
 Same as for 1D arrays.
 
-`x2[:2, :3]  # two rows, three columns`"]
+`x2[:2, :3]  # two rows, three columns`
+
+Clj: You can get/set subrects at a given time using mget/mset! pathways from `tech.v3.tensor`."]
 
 ["#### Accessing array rows and columns
 
@@ -59,22 +234,32 @@ One commonly needed routine is accessing of single rows or columns of an array.
 
 ["#### Subarrays as no-copy views
 
-views rather than copies of the array data"]
+views rather than copies of the array data
+
+NOTE: You can use `tech.v3.datatype.argops` to create \"indexes\" for a buffer and then
+combine these with the buffer using `tech.v3.datatype/indexed-buffer` to create a custom
+view of the original buffer"]
 
 ["#### Creating copies of arrays
 
 Despite the nice features of array views, it is sometimes useful to instead explicitly copy the data within an array or a subarray."]
 
+;; see "Copy" in https://cnuernber.github.io/dtype-next/cheatsheet.html
+;; see https://cnuernber.github.io/dtype-next/tech.v3.datatype.html#var-copy.21
 
 ["### Reshaping of Arrays
 
 For example, if you want to put the numbers 1 through 9 in a 3×3 grid"]
+
+;; see https://scicloj.github.io/tablecloth/#Reshape and ... ?
 
 
 ["### Array Concatenation and Splitting
 
 All of the preceding routines worked on single arrays. It's also possible to combine multiple arrays into one, and to conversely split a single array into multiple arrays. "]
 
+;; see https://scicloj.github.io/tablecloth/#JoinConcat_Datasets
+;; see https://cnuernber.github.io/dtype-next/tech.v3.datatype.html#var-concat-buffers
 
 ["#### Concatenation of arrays
 
@@ -95,7 +280,12 @@ The opposite of concatenation is splitting, which is implemented by the function
 Ex.:
 * `1.0 / matrice`
 * `np.arange(5) / np.arange(1, 6)` - two arrays
-* `x = np.arange(9).reshape((3, 3)); 2 ** x` - on multi-dimensional array"]
+* `x = np.arange(9).reshape((3, 3)); 2 ** x` - on multi-dimensional array
+
+dtype-next offers [`tech.v3.datatype.functional`](https://cnuernber.github.io/dtype-next/tech.v3.datatype.functional.html)"]
+
+;; see https://cnuernber.github.io/dtype-next/tech.v3.datatype.functional.html
+;; see https://cnuernber.github.io/dtype-next/tech.v3.datatype.html#var-emap
 
 
 ["### Exploring NumPy's UFuncs"]
@@ -173,6 +363,12 @@ More information on universal functions (including the full list of available fu
 
  NumPy has fast built-in aggregation functions for working on arrays; we'll discuss and demonstrate some of them here."]
 
+["### Clojure: descriptive stats
+
+`ds/descriptive-stats` displays these stats: `n-valid`, `n-missing`, `min`, `mean`, `mode`, `max`, `standard-deviation`, `skew`"]
+
+; (ds/descriptive-stats csv-data)
+
 ["### Summing the Values in an Array
 
 `np.sum(L)`"]
@@ -238,8 +434,11 @@ plt.hist(heights)
 plt.title('Height Distribution of US Presidents')
 plt.xlabel('height (cm)')
 plt.ylabel('number'));
-
 ```"]
+
+(def csv-data (ds/->dataset "https://raw.githubusercontent.com/jakevdp/PythonDataScienceHandbook/master/notebooks/data/president_heights.csv"))
+^k/dataset
+(ds/head csv-data 3)
 
 ["Computation on Arrays: Broadcasting
  ------------------------------------------------"]

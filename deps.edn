@@ -3,6 +3,17 @@
 
  :deps
  {scicloj/tablecloth {:mvn/version "5.00-beta-5a"}
-  scicloj/notespace {:mvn/version "3-alpha2"}
-  #_#_nrepl/nrepl    {:mvn/version "0.8.3"}}}
+  scicloj/notespace {:mvn/version "3-alpha3.1-SNAPSHOT"}
+  generateme/fastmath {:mvn/version "2.0.5"}
+  #_#_nrepl/nrepl    {:mvn/version "0.8.3"}}
+
+ ;; Following copied from https://github.com/practicalli/scicloj-notespace-simple-demo/blob/live/deps.edn
+ :aliases
+ {;; Include dev/user.clj file, used to start notespace and portal
+  :env/dev
+  {:extra-paths ["dev"]}
+
+  ;; Required when using Calva jack-in
+  :inspect/portal-clj
+  {:extra-deps {djblue/portal {:mvn/version "0.6.4"}}}}}
 
