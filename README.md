@@ -1,2 +1,1 @@
-# SciCloj ML Study - Python Data Science ch2 translated to Clojure
-
+**Moved to https://github.com/scicloj/scicloj-data-science-handbook/blob/live/src/scicloj/02_numpy.clj**
